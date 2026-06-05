@@ -41,3 +41,10 @@ int main()
         hx711_collect_samples(num_samples);
     }
 }
+
+void interrupt_callback(void){
+    read_ina219();
+    // print out current along with position
+    // read ADC
+    // 
+}
