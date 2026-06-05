@@ -4,13 +4,11 @@
 #include "hardware/pwm.h"
 #include "math.h"
 
-#define INA_SDA_PIN 10
-#define INA_SCL_PIN 11
-#define DT_PIN 14
-#define SCK_PIN 15
+#define IN1 13
+#define IN2 12
 #define BUF_SIZE 200
 
-enum mode_t {IDLE, PWM, ITEST, HOLD, TRACK};
+enum mode_t {IDLE, PWM, ITEST, HOLD};
 volatile enum mode_t mode = IDLE;
 
 volatile float duty = 0; // global variable for the duty cycle, between -100 and 100
@@ -97,26 +95,6 @@ bool current_control(struct repeating_timer *t) {
             current_index++;
             break;
         case HOLD:
-            break;
-        case TRACK:
-            if (position_index >= trajectory_length){
-                position_index = 0;
-                error_integral = 0;
-                mode = IDLE;
-                break;
-            }
-
-            float measured = read_ina219();
-            error = desired_current_for_position - measured;
-            error_integral += error;
-            
-            duty = Kp_current*error + Ki_current*error_integral;
-            
-            if (duty > 100) duty = 100;
-            if (duty < -100) duty = -100;
-            set_duty(duty);
-
-            current_index++;
             break;
     }
     return true;
