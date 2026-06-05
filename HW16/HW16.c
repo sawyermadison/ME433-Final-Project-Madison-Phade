@@ -4,10 +4,9 @@
 #include "hardware/pwm.h"
 #include "math.h"
 
-#define INA_SDA_PIN 10
-#define INA_SCL_PIN 11
-#define DT_PIN 14
-#define SCK_PIN 15
+#define IN1 13
+#define IN2 12
+#define ADC_PIN 26
 #define BUF_SIZE 200
 
 enum mode_t {IDLE, PWM, ITEST, HOLD, TRACK};
@@ -38,21 +37,21 @@ void init_desired_current(){
 }
 
 void init_hbridge(){
-    //20 khz pwm on In1, GP17
-    gpio_init(17);
-    gpio_set_dir(17, GPIO_OUT);
-    gpio_set_function(17, GPIO_FUNC_PWM);
-    uint slice_num = pwm_gpio_to_slice_num(17);
+    //20 khz pwm on In1, GP13
+    gpio_init(IN1);
+    gpio_set_dir(IN1, GPIO_OUT);
+    gpio_set_function(IN1, GPIO_FUNC_PWM);
+    uint slice_num = pwm_gpio_to_slice_num(IN1);
     float div = 1;
     pwm_set_clkdiv(slice_num, div);
     pwm_set_wrap(slice_num, 7500); // 20 kHz PWM frequency, must be less than 65536 for 16-bit counter
     pwm_set_enabled(slice_num, true);
 
-    // 20 kHz pwm on In2, GP16
-    gpio_init(16);
-    gpio_set_dir(16, GPIO_OUT);
-    gpio_set_function(16, GPIO_FUNC_PWM);
-    slice_num = pwm_gpio_to_slice_num(16);
+    // 20 kHz pwm on In2, GP12
+    gpio_init(IN2);
+    gpio_set_dir(IN2, GPIO_OUT);
+    gpio_set_function(IN2, GPIO_FUNC_PWM);
+    slice_num = pwm_gpio_to_slice_num(IN2);
     pwm_set_clkdiv(slice_num, div);
     pwm_set_wrap(slice_num, 7500); // 20 kHz PWM frequency, must be less than 65536 for 16-bit counter
     pwm_set_enabled(slice_num, true);
@@ -60,12 +59,12 @@ void init_hbridge(){
 
 void set_duty(float duty_percent){
     if (duty_percent >= 0) {
-        pwm_set_gpio_level(17, 7500);
-        pwm_set_gpio_level(16, (100-duty_percent)*7500/100);
+        pwm_set_gpio_level(IN1, 7500);
+        pwm_set_gpio_level(IN2, (100-duty_percent)*7500/100);
     }
     else if (duty_percent < 0) {
-        pwm_set_gpio_level(16, 7500);
-        pwm_set_gpio_level(17, (100+duty_percent)*7500/100);
+        pwm_set_gpio_level(IN2, 7500);
+        pwm_set_gpio_level(IN1, (100+duty_percent)*7500/100);
     }
 }
 
@@ -122,33 +121,27 @@ bool current_control(struct repeating_timer *t) {
     return true;
 }
 
+void interrupt_callback(void){
+    float current = read_ina219();
+    printf("Current: %.4f mA\n", current);
 
+    // read ADC
+    int adc_value = gpio_get(ADC_PIN);
+    printf("ADC Value: %d\n", adc_value);
+    if (adc_value < 100 || adc_value > 900) { // safety stop
+        set_duty(0);
+    }
 
+}
 
 int main()
 {
     stdio_init_all();
     init_hx711();
+    init_ina219();
     
     sleep_ms(5000);
     printf("Starting data collection...\n");
-
-    //  while (gpio_get(DT_PIN) != 0) { // wait until data pin is low
-    //     tight_loop_contents();
-    //  }
-
-    //  init_ina219(INA_SDA_PIN, INA_SCL_PIN);
-    //  sleep_ms(1000);
-
-    //  printf("INA219 and HX711 initialized\n");
-
-    //  while (true) {
-    //     float voltage = read_ina219_voltage();
-    //     float current = read_ina219_current();
-
-    //     printf("Voltage: %.3f V, Current: %.3f mA\n", voltage, current);
-    //     sleep_ms(1000);
-    //  }
 
     while (true) {
         printf("%d\n", N_SAMPLES);
@@ -161,11 +154,4 @@ int main()
         printf("Collecting %d samples...\n", num_samples);
         hx711_collect_samples(num_samples);
     }
-}
-
-void interrupt_callback(void){
-    read_ina219();
-    // print out current along with position
-    // read ADC
-    // 
 }

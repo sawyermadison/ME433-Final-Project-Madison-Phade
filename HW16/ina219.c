@@ -7,8 +7,8 @@
 #define INA219_REG_CURRENT 0x04 // current register
 #define INA219_REG_CALIBRATION 0x05 // calibration register
 
-#define SDA_PIN 14
-#define SCL_PIN 15
+#define SDA_PIN 10
+#define SCL_PIN 11
 #define I2C_INST i2c1
 
 // private functions
