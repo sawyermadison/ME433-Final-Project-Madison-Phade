@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "hx711.h"
 #include "ina219.h"
 #include "hardware/pwm.h"
+#include "hardware/adc.h"
 #include "math.h"
 
 #define IN1 13
@@ -101,14 +103,20 @@ bool current_control(struct repeating_timer *t) {
     return true;
 }
 
+void init_ADC(){
+    adc_init();
+    adc_gpio_init(ADC_PIN);
+    adc_select_input(0); // select ADC0, which is connected to GPIO26
+}
+
 void interrupt_callback(void){
     float current = read_ina219();
     printf("Current: %.4f mA\n", current);
 
     // read ADC
-    int adc_value = gpio_get(ADC_PIN);
+    uint16_t adc_value = adc_read();
     printf("ADC Value: %d\n", adc_value);
-    if (adc_value < 100 || adc_value > 900) { // safety stop
+    if (adc_value < 3800 || adc_value > 4000) { // safety stop
         set_duty(0);
     }
 
@@ -119,6 +127,8 @@ int main()
     stdio_init_all();
     init_hx711();
     init_ina219();
+    init_ADC();
+    init_hbridge();
     
     sleep_ms(5000);
     printf("Starting data collection...\n");
@@ -134,4 +144,5 @@ int main()
         printf("Collecting %d samples...\n", num_samples);
         hx711_collect_samples(num_samples);
     }
+    
 }

@@ -47,7 +47,9 @@ pico_enable_stdio_usb(HW16 1)
 # Add the standard library to the build
 target_link_libraries(HW16
         pico_stdlib
-        hardware_i2c)
+        hardware_i2c
+        hardware_pwm
+        hardware_adc)
 
 # Add the standard include files to the build
 target_include_directories(HW16 PRIVATE

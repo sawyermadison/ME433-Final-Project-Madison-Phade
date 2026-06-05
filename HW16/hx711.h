@@ -7,7 +7,7 @@
 #include "hardware/i2c.h"
 
 void init_hx711();
-int32_t read_hx711();
+int32_t read_bits();;
 void hx711_collect_samples(int num_samples);
 
 #endif
