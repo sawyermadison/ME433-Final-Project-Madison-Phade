@@ -109,40 +109,59 @@ void init_ADC(){
     adc_select_input(0); // select ADC0, which is connected to GPIO26
 }
 
-void interrupt_callback(void){
-    float current = read_ina219();
-    printf("Current: %.4f mA\n", current);
+// void interrupt_callback(void){
+//     float current = read_ina219();
+//     printf("Current: %.4f mA\n", current);
 
-    // read ADC
-    uint16_t adc_value = adc_read();
-    printf("ADC Value: %d\n", adc_value);
-    if (adc_value < 3800 || adc_value > 4000) { // safety stop
-        set_duty(0);
-    }
+//     // read ADC
+//     uint16_t adc_value = adc_read();
+//     printf("ADC Value: %d\n", adc_value);
+//     if (adc_value < 3800 || adc_value > 4000) { // safety stop
+//         set_duty(0);
+//     }
 
-}
+// }
 
 int main()
 {
     stdio_init_all();
-    init_hx711();
     init_ina219();
     init_ADC();
     init_hbridge();
-    
+    init_desired_current();
+
+    Kp_current = 0;  // tune these
+    Ki_current = 0;
+
+    add_repeating_timer_ms(-1, current_control, NULL, &timer);
+
     sleep_ms(5000);
-    printf("Starting data collection...\n");
+
+    // sanity check: print raw INA219 readings while motor spins
+    cancel_repeating_timer(&timer);
+    set_duty(10);
+    for (int i = 0; i < 50; i++) {
+        float current = read_ina219();
+        printf("Current: %.4f mA\n", current);
+        sleep_ms(100);
+    }
+    set_duty(0);
+
 
     while (true) {
-        printf("%d\n", N_SAMPLES);
-        for (int i = 0; i < N_SAMPLES; i++) {
-            printf("%.4f %.4f\n", desired[i], actual[i]);
+        current_index = 0;
+        error_integral = 0;
+        mode = ITEST;
+
+        while (mode == ITEST) { 
+            sleep_ms(10);
         }
-        int num_samples;
-        printf("Enter number of samples to collect: ");
-        scanf("%d", &num_samples);
-        printf("Collecting %d samples...\n", num_samples);
-        hx711_collect_samples(num_samples);
+
+        printf("%d\n", 400);
+        for (int i = 0; i < 400; i++) {
+            printf("%.4f %.4f\n", desired_current[i], actual_current[i]);
+        }
+
+        sleep_ms(5000);
     }
-    
 }
