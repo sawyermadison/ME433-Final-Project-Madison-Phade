@@ -8,5 +8,6 @@
 
 void init_hx711();
 int32_t read_hx711();
+void hx711_collect_samples(int num_samples);
 
 #endif

@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(HW16 HW16.c )
+add_executable(HW16 HW16.c ina219.c hx711.c)
 
 pico_set_program_name(HW16 "HW16")
 pico_set_program_version(HW16 "0.1")
@@ -46,7 +46,8 @@ pico_enable_stdio_usb(HW16 1)
 
 # Add the standard library to the build
 target_link_libraries(HW16
-        pico_stdlib)
+        pico_stdlib
+        hardware_i2c)
 
 # Add the standard include files to the build
 target_include_directories(HW16 PRIVATE

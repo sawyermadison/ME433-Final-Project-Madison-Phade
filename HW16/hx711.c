@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "hx711.h"
 #include "pico/stdlib.h"
 
 #define DT_PIN 14
@@ -7,40 +8,34 @@
 void init_hx711();
 int32_t read_bits();
 
-int main()
-{
-    stdio_init_all();
+void hx711_collect_samples(int num_samples) {
 
-    init_hx711();
+    int raw[num_samples];
+    int32_t filtered[num_samples];
+    uint32_t time[num_samples];
 
-    while (true) {
+    int32_t avg = 0;
+    for (int i = 0; i < 20; i++) {
+        avg += read_bits();
+    }
+    avg /= 20;
 
-        int num_samples = 0;
-        scanf("%d", &num_samples); // wait for number of samples to read
-        printf("works: %d\n", num_samples); // print number of samples back to confirm
-        int raw[num_samples];
-        int32_t filtered[num_samples];
-        uint32_t time[num_samples];
+    uint32_t t0 = to_ms_since_boot(get_absolute_time());
 
-        int32_t avg_calc=0;
-        for (int i=0; i<20; i++){
-            avg_calc += read_bits();
-        }
-        avg_calc = avg_calc / 20; // initial average for IIR filter
+    for (int i = 0; i < num_samples; i++) {
+        int32_t value = read_bits();
+        printf("%d\n", value);
 
-        int32_t avg = avg_calc; // value for IIR filter
-        uint32_t t0 = to_ms_since_boot(get_absolute_time());
-        for (int i = 0; i < num_samples; i++){
-            int32_t value = read_bits();
-            raw[i] = value;
-            avg = value * 0.1 + avg * 0.9; // update average for IIR filter
-            //printf("%ld %ld\n", value, avg);
-            filtered[i] = avg;
-            time[i] = to_ms_since_boot(get_absolute_time())-t0;
-        }
-        for (int i=0; i<num_samples; i++){
-            printf("%lu %ld %ld\n",  time[i], raw[i], filtered[i]);
-        }
+        raw[i] = value;
+
+        avg = value * 0.1 + avg * 0.9;
+        filtered[i] = avg;
+
+        time[i] = to_ms_since_boot(get_absolute_time()) - t0;
+    }
+
+    for (int i = 0; i < num_samples; i++) {
+        printf("%lu %ld %ld\n", time[i], raw[i], filtered[i]);
     }
 }
 
