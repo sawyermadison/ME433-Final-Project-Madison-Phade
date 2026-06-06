@@ -1,11 +1,13 @@
 import serial
+import time
 import matplotlib.pyplot as plt
 
 ser = serial.Serial('COM3', 115200)
 print('Opening port: ' + ser.name)
 
 # send trigger
-ser.write(b'b\n')
+time.sleep(5)
+ser.write(b'a\n')
 
 # read n data points
 n_str = ser.read_until(b'\n')
