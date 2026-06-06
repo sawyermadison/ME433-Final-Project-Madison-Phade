@@ -2,7 +2,7 @@ import serial
 import time
 import matplotlib.pyplot as plt
 
-ser = serial.Serial('COM3', 115200)
+ser = serial.Serial('COM4', 115200)
 print('Opening port: ' + ser.name)
 
 # send trigger
