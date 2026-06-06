@@ -74,19 +74,27 @@ void set_duty(float duty_percent){
 
 // 1kH timer interrupt
 bool current_control(struct repeating_timer *t) {
-    if (state_read == 1){
-        // checking position and current
-        float current = read_ina219();
-        // printf("Current: %.4f mA\n", current);
-
-        // read ADC
-        uint16_t adc_value = adc_read();
-        // printf("ADC Value: %d\n", adc_value);
-        if (adc_value < 3800 || adc_value > 4000) { // safety stop
+    uint16_t adc_value = adc_read();
+    if (adc_value < 100 || adc_value > 1600) { // safety stop
             set_duty(0);
+            return true;
         }
         state_read = 0;
-    }
+
+    // if (state_read == 1){
+        // checking position and current
+        //float current = read_ina219();
+        // printf("Current: %.4f mA\n", current);
+
+        // // read ADC
+        // uint16_t adc_value = adc_read();
+        // // printf("ADC Value: %d\n", adc_value);
+        // if (adc_value < 100 || adc_value > 1600) { // safety stop
+        //     set_duty(0);
+        // }
+        // state_read = 0;
+        // return true;
+    //}
 
 
     float error;
@@ -142,29 +150,44 @@ int main()
 
     add_repeating_timer_ms(-1, current_control, NULL, &timer);
 
+    // while (true) {
+
+    //     char input;
+    //     scanf(" %c", &input);
+    //     if (input == 'a'){
+    //         state_read = 1;
+    //         while (state_read == 1) {
+    //             tight_loop_contents();
+    //         }
+
+    //         current_index = 0;
+    //         error_integral = 0;
+    //         mode = ITEST;
+
+    //         while (mode == ITEST) { 
+    //             tight_loop_contents();
+    //         }
+
+    //         printf("%d\n", 400);
+    //         for (int i = 0; i < 400; i++) {
+    //             printf("%.4f %.4f\n", desired_current[i], actual_current[i]);
+    //         }
+
+    //         sleep_ms(5000);
+    //     }
+    // }
+    // In main(), after the timer is started:
+    sleep_ms(2000); // let everything settle
+
+    // Run motor at 30% duty
+    duty = -30;
+    mode = PWM;
+
+    printf("Motor running. Move pot to limit to test safety stop.\n");
+
     while (true) {
-        char input;
-        scanf("%c", &input);
-        if (input == 'a'){
-            state_read = 1;
-            while (state_read == 1) {
-                tight_loop_contents();
-            }
-        }
-
-        current_index = 0;
-        error_integral = 0;
-        mode = ITEST;
-
-        while (mode == ITEST) { 
-            tight_loop_contents();
-        }
-
-        printf("%d\n", 400);
-        for (int i = 0; i < 400; i++) {
-            printf("%.4f %.4f\n", desired_current[i], actual_current[i]);
-        }
-
-        sleep_ms(5000);
+        uint16_t adc = adc_read();
+        printf("ADC: %u SAFE: %s\n", adc, (adc >= 100 && adc <= 1600) ? "OK" : "TRIPPED");
+        sleep_ms(100);
     }
 }
