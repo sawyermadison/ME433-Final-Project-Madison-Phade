@@ -27,6 +27,8 @@ volatile float error_integral = 0;
 struct repeating_timer timer;
 struct repeating_timer timer_position;
 
+volatile int state_read = 0;
+
 void init_desired_current(){
     for (int i = 0; i < 400; i++){
         if ((i/100) % 4 == 0 || (i/100) % 4 == 2){ // if we are in the first or third 100 iterations, we want -100mA
@@ -72,6 +74,21 @@ void set_duty(float duty_percent){
 
 // 1kH timer interrupt
 bool current_control(struct repeating_timer *t) {
+    if (state_read == 1){
+        // checking position and current
+        float current = read_ina219();
+        // printf("Current: %.4f mA\n", current);
+
+        // read ADC
+        uint16_t adc_value = adc_read();
+        // printf("ADC Value: %d\n", adc_value);
+        if (adc_value < 3800 || adc_value > 4000) { // safety stop
+            set_duty(0);
+        }
+        state_read = 0;
+    }
+
+
     float error;
     switch(mode){
         case IDLE:
@@ -109,18 +126,6 @@ void init_ADC(){
     adc_select_input(0); // select ADC0, which is connected to GPIO26
 }
 
-// void interrupt_callback(void){
-//     float current = read_ina219();
-//     printf("Current: %.4f mA\n", current);
-
-//     // read ADC
-//     uint16_t adc_value = adc_read();
-//     printf("ADC Value: %d\n", adc_value);
-//     if (adc_value < 3800 || adc_value > 4000) { // safety stop
-//         set_duty(0);
-//     }
-
-// }
 
 int main()
 {
@@ -138,12 +143,21 @@ int main()
     add_repeating_timer_ms(-1, current_control, NULL, &timer);
 
     while (true) {
+        char input;
+        scanf("%c", &input);
+        if (input == 'a'){
+            state_read = 1;
+            while (state_read == 1) {
+                tight_loop_contents();
+            }
+        }
+
         current_index = 0;
         error_integral = 0;
         mode = ITEST;
 
         while (mode == ITEST) { 
-            sleep_ms(10);
+            tight_loop_contents();
         }
 
         printf("%d\n", 400);

@@ -1,11 +1,11 @@
 import serial
 import matplotlib.pyplot as plt
 
-ser = serial.Serial('COM4', 115200)
+ser = serial.Serial('COM3', 115200)
 print('Opening port: ' + ser.name)
 
 # send trigger
-ser.write(b'a\n')
+ser.write(b'b\n')
 
 # read n data points
 n_str = ser.read_until(b'\n')
