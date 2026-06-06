@@ -130,23 +130,12 @@ int main()
     init_hbridge();
     init_desired_current();
 
-    Kp_current = 0;  // tune these
-    Ki_current = 0;
-
-    add_repeating_timer_ms(-1, current_control, NULL, &timer);
+    Kp_current = 0.007;  // tune these
+    Ki_current = 0.025;
 
     sleep_ms(5000);
 
-    // sanity check: print raw INA219 readings while motor spins
-    cancel_repeating_timer(&timer);
-    set_duty(10);
-    for (int i = 0; i < 50; i++) {
-        float current = read_ina219();
-        printf("Current: %.4f mA\n", current);
-        sleep_ms(100);
-    }
-    set_duty(0);
-
+    add_repeating_timer_ms(-1, current_control, NULL, &timer);
 
     while (true) {
         current_index = 0;
