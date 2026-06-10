@@ -20,9 +20,9 @@
 #define I2C_FREQ    400000   /* 400 kHz fast mode */
 
 // Wall parameters (in degrees)
-#define WALL_LEFT   315.0f
-#define WALL_RIGHT  45.0f
-#define WALL_STIFFNESS  5.0f   // mA per degree of penetration, tune this
+#define WALL_LEFT   345.0f
+#define WALL_RIGHT  15.0f
+#define WALL_STIFFNESS  30.0f   // mA per degree of penetration, tune this
 
 // Transparency compensation
 #define FRICTION_COMP  15.0f   // mA, tune to taste — constant torque to overcome motor friction
@@ -66,16 +66,18 @@ float get_desired_current(float angle_deg) {
     // Right wall: small positive angles (e.g. > 45 degrees rightward)
     if (angle_deg > 0.5f && angle_deg < 180.0f) {
         float penetration = angle_deg - WALL_RIGHT;  // how far past 45
-        if (penetration > 0)
+        if (penetration > 0){
             printf("Right wall penetration: %.2f degrees\n", penetration);
             return -(WALL_STIFFNESS * penetration);  // push back left toward 0
+        }
     }
     // Left wall: large angles close to 360 (e.g. < 315 degrees leftward)
     else if (angle_deg >= 180.0f) {
-        float penetration = WALL_LEFT - angle_deg;   // how far past 315
-        if (penetration < 0)
-            printf("Left wall penetration: %.2f degrees\n", -penetration);
-            return -(WALL_STIFFNESS * penetration);  // push back right toward 0
+        float penetration = WALL_LEFT - angle_deg;  // positive when past the wall
+        if (penetration > 0){
+            printf("Left wall penetration: %.2f degrees\n", penetration);
+            return (WALL_STIFFNESS * penetration);    // push back rightward (positive current)
+        }
     }
     // Free zone: near 0, between the walls
     return 0;
