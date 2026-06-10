@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(HW16 HW16.c ina219.c hx711.c)
+add_executable(HW16 HW16.c ina219.c hx711.c as5600.c)
 
 pico_set_program_name(HW16 "HW16")
 pico_set_program_version(HW16 "0.1")
