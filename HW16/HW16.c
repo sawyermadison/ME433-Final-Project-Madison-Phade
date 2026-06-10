@@ -67,7 +67,7 @@ float get_desired_current(float angle_deg) {
     if (angle_deg > 0.5f && angle_deg < 180.0f) {
         float penetration = angle_deg - WALL_RIGHT;  // how far past 45
         if (penetration > 0){
-            printf("Right wall penetration: %.2f degrees\n", penetration);
+            printf("Right detected: %.2f deg\n", penetration);
             return -(WALL_STIFFNESS * penetration);  // push back left toward 0
         }
     }
@@ -75,7 +75,7 @@ float get_desired_current(float angle_deg) {
     else if (angle_deg >= 180.0f) {
         float penetration = WALL_LEFT - angle_deg;  // positive when past the wall
         if (penetration > 0){
-            printf("Left wall penetration: %.2f degrees\n", penetration);
+            printf("Left detected: %.2f deg\n", penetration);
             return (WALL_STIFFNESS * penetration);    // push back rightward (positive current)
         }
     }
@@ -132,7 +132,7 @@ bool current_control(struct repeating_timer *t) {
     uint16_t adc_value = adc_read();
     //printf("ADC Value: %d\n", adc_value);
     if (adc_value < 50 || adc_value > 2000) { // safety stop
-            printf("ADC Value out of range! Stopping motor.\n");
+            printf("out of range\n");
             set_duty(0);
             return true;
         }
@@ -181,7 +181,7 @@ bool current_control(struct repeating_timer *t) {
             float angle;
             as5600_read_angle_degrees(&sensor, &angle);
 
-            printf("Angle: %.2f degrees\n", angle);
+            printf("Angle: %.2f deg\n", angle);
 
             float desired = get_desired_current(angle);
 
@@ -315,8 +315,6 @@ int main(void)
 
         mode = HAPTIC;
 
-        printf("TEsting...\n");
-        sleep_ms(1000);
     }
  
     return 0;

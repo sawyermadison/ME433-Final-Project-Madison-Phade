@@ -42,8 +42,8 @@ ADC_MAX         = 2000    # safety stop threshold (raw ADC counts)
  
 # Map ADC safety-stop thresholds to approximate angles.
 # Adjust these to match whatever your ADC linear travel actually covers.
-SAFETY_ANGLE_LEFT  = 315.0   # degrees — left hard stop
-SAFETY_ANGLE_RIGHT =  40.0   # degrees — right hard stop
+SAFETY_ANGLE_LEFT  = 310.0   # degrees — left hard stop
+SAFETY_ANGLE_RIGHT =  45.0   # degrees — right hard stop
  
 # ── Window / layout ───────────────────────────────────────────────────────────
 SCREEN_W, SCREEN_H = 800, 700
@@ -120,15 +120,15 @@ class SerialReader(threading.Thread):
                 line = ser.readline().decode("utf-8", errors="ignore").strip()
                 if line.startswith("Angle:"):
                     try:
-                        val = float(line.split(":")[1].replace("degrees", "").strip())
+                        val = float(line.split(":")[1].replace("deg", "").strip())
                         with self._lock:
                             self.angle = val
                             self.safety_trip = False
                     except ValueError:
                         pass
-                elif "wall penetration" in line.lower():
+                elif "detected" in line.lower():
                     try:
-                        val = float(line.split(":")[1].replace("degrees", "").strip())
+                        val = float(line.split(":")[1].replace("deg", "").strip())
                         with self._lock:
                             self.penetration = val
                     except ValueError:
@@ -358,9 +358,7 @@ class HapticVizWindow(arcade.Window):
     # ── safety flash overlay ──────────────────────────────────────────────────
     def _draw_safety_flash(self):
         r, g, b = COL_SAFE_FLASH
-        arcade.draw_rect_filled(SCREEN_W / 2, SCREEN_H / 2,
-                                     SCREEN_W, SCREEN_H,
-                                     (r, g, b, self._flash_alpha))
+        #arcade.draw_rect_filled(SCREEN_W / 2, SCREEN_H / 2, SCREEN_W, SCREEN_H, (r, g, b, self._flash_alpha))
         arcade.draw_text("⚠  SAFETY STOP  ⚠",
                          SCREEN_W / 2, SCREEN_H / 2,
                          (255, 255, 255, min(255, self._flash_alpha * 2)),
