@@ -20,8 +20,8 @@
 #define I2C_FREQ    400000   /* 400 kHz fast mode */
 
 // Wall parameters (in degrees)
-#define WALL_LEFT   345.0f
-#define WALL_RIGHT  15.0f
+#define WALL_LEFT   330.0f
+#define WALL_RIGHT  30.0f
 #define WALL_STIFFNESS  30.0f   // mA per degree of penetration, tune this
 
 // Transparency compensation
@@ -131,7 +131,7 @@ void set_duty(float duty_percent){
 bool current_control(struct repeating_timer *t) {
     uint16_t adc_value = adc_read();
     //printf("ADC Value: %d\n", adc_value);
-    if (adc_value < 100 || adc_value > 1600) { // safety stop
+    if (adc_value < 50 || adc_value > 2000) { // safety stop
             printf("ADC Value out of range! Stopping motor.\n");
             set_duty(0);
             return true;
